@@ -4,13 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import ROSLIB from "roslib";
 
 /* ---- minimal message typings ---- */
-interface NavSatFixMsg {
+interface NavSatFixMsg extends ROSLIB.Message {
   latitude: number;
   longitude: number;
   altitude: number;
 }
-interface ImuMsg {
+
+interface ImuMsg extends ROSLIB.Message {
   orientation: { x: number; y: number; z: number; w: number };
+}
+
+interface CommandBoolRequest extends ROSLIB.Message {
+  value: boolean;
+}
+
+interface SetModeRequest extends ROSLIB.Message {
+  base_mode: number;
+  custom_mode: string;
 }
 
 export default function Home() {
@@ -52,17 +62,19 @@ export default function Home() {
       name: "/mavros/global_position/raw/fix",
       messageType: "sensor_msgs/NavSatFix",
     });
-    navsat.subscribe((m: NavSatFixMsg) =>
-      setGps({ lat: m.latitude, lon: m.longitude, alt: m.altitude })
-    );
+    navsat.subscribe((m: ROSLIB.Message) => {
+      const msg = m as NavSatFixMsg;
+      setGps({ lat: msg.latitude, lon: msg.longitude, alt: msg.altitude });
+    });
 
     const imu = new ROSLIB.Topic({
       ros: ros.current,
       name: "/mavros/imu/data",
       messageType: "sensor_msgs/Imu",
     });
-    imu.subscribe((m: ImuMsg) => {
-      const { x, y, z, w } = m.orientation;
+    imu.subscribe((m: ROSLIB.Message) => {
+      const msg = m as ImuMsg;
+      const { x, y, z, w } = msg.orientation;
       const yaw = Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
       setHdg((yaw * 180 / Math.PI).toFixed(1));
     });
@@ -75,9 +87,17 @@ export default function Home() {
   }, []);
 
   /* ---------- helpers ---------- */
-  const arm     = (v: boolean) => armSrv.current?.callService({ value: v });
-  const setMode = (m: string)  =>
-    modeSrv.current?.callService({ base_mode: 0, custom_mode: m });
+  const arm = (v: boolean) => armSrv.current?.callService(
+    { value: v } as CommandBoolRequest,
+    () => {},
+    (error: string) => console.error(error)
+  );
+  
+  const setMode = (m: string) => modeSrv.current?.callService(
+    { base_mode: 0, custom_mode: m } as SetModeRequest,
+    () => {},
+    (error: string) => console.error(error)
+  );
   const sendWp  = (lat: number, lon: number, alt: number) =>
     wpTopic.current?.publish(
       new ROSLIB.Message({
