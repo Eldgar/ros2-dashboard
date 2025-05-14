@@ -40,7 +40,18 @@ export default function Home() {
       serviceType: "mavros_msgs/srv/CommandBool",
     });
 
-    modeSrv.current = new ROSLIB.Service({
+    modFailed to compile.
+    ./src/app/page.tsx:24:15
+    Type error: Expected 1 arguments, but got 0.
+      22 |
+      23 |   /* keep ROS handles in refs (persist across renders) */
+    > 24 |   const ros = useRef<ROSLIB.Ros>();
+         |               ^
+      25 |   const armSrv = useRef<ROSLIB.Service>();
+      26 |   const modeSrv = useRef<ROSLIB.Service>();
+      27 |   const wpTopic = useRef<ROSLIB.Topic>();
+    Next.js build worker exited with code: 1 and signal: null
+    Error: Command "npm run build" exited with 1eSrv.current = new ROSLIB.Service({
       ros: ros.current,
       name: "/mavros/set_mode",
       serviceType: "mavros_msgs/srv/SetMode",
