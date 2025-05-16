@@ -87,18 +87,26 @@ export default function Home() {
   }, []);
 
   /* ---------- helpers ---------- */
-  const arm = (v: boolean) => armSrv.current?.callService(
-    { value: v } as CommandBoolRequest,
-    () => {},
-    (error: string) => console.error(error)
-  );
+  const arm = (v: boolean) => {
+    console.log(`Attempting to ${v ? 'arm' : 'disarm'} the drone...`);
+    armSrv.current?.callService(
+      { value: v } as CommandBoolRequest,
+      () => console.log(`Successfully ${v ? 'armed' : 'disarmed'} the drone`),
+      (error: string) => console.error(`Failed to ${v ? 'arm' : 'disarm'} the drone:`, error)
+    );
+  };
   
-  const setMode = (m: string) => modeSrv.current?.callService(
-    { base_mode: 0, custom_mode: m } as SetModeRequest,
-    () => {},
-    (error: string) => console.error(error)
-  );
-  const sendWp  = (lat: number, lon: number, alt: number) =>
+  const setMode = (m: string) => {
+    console.log(`Attempting to set flight mode to: ${m}`);
+    modeSrv.current?.callService(
+      { base_mode: 0, custom_mode: m } as SetModeRequest,
+      () => console.log(`Successfully set flight mode to: ${m}`),
+      (error: string) => console.error(`Failed to set flight mode to ${m}:`, error)
+    );
+  };
+
+  const sendWp = (lat: number, lon: number, alt: number) => {
+    console.log(`Sending waypoint: lat=${lat}, lon=${lon}, alt=${alt}`);
     wpTopic.current?.publish(
       new ROSLIB.Message({
         header: { frame_id: "map" },
@@ -108,6 +116,8 @@ export default function Home() {
         },
       })
     );
+    console.log('Waypoint published');
+  };
 
   /* waypoint form state */
   const [wpLat, setWpLat] = useState("");
@@ -124,16 +134,30 @@ export default function Home() {
       <div>Heading&nbsp;{hdg}°</div>
 
       <div className="space-x-2">
-        <button className="px-3 py-1 bg-green-600 text-white rounded"
-                onClick={() => { arm(true); setMode("AUTO"); }}>
+        <button 
+          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+          onClick={() => {
+            console.log('START button clicked - Initiating AUTO mode and arming');
+            arm(true);
+            setMode("AUTO");
+          }}>
           START&nbsp;(AUTO)
         </button>
-        <button className="px-3 py-1 bg-yellow-500 text-white rounded"
-                onClick={() => setMode("HOLD")}>
+        <button 
+          className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+          onClick={() => {
+            console.log('PAUSE button clicked - Setting HOLD mode');
+            setMode("HOLD");
+          }}>
           PAUSE&nbsp;(HOLD)
         </button>
-        <button className="px-3 py-1 bg-red-600 text-white rounded"
-                onClick={() => { setMode("STABILIZE"); arm(false); }}>
+        <button 
+          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          onClick={() => {
+            console.log('STOP button clicked - Disarming and setting STABILIZE mode');
+            setMode("STABILIZE");
+            arm(false);
+          }}>
           STOP&nbsp;(DISARM)
         </button>
       </div>
@@ -145,10 +169,18 @@ export default function Home() {
                value={wpLon} onChange={e => setWpLon(e.target.value)} />
         <input className="border px-1 w-20" placeholder="alt"
                value={wpAlt} onChange={e => setWpAlt(e.target.value)} />
-        <button className="px-3 py-1 bg-blue-600 text-white rounded"
-                onClick={() =>
-                  sendWp(parseFloat(wpLat), parseFloat(wpLon), parseFloat(wpAlt))
-                }>
+        <button 
+          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          onClick={() => {
+            const lat = parseFloat(wpLat);
+            const lon = parseFloat(wpLon);
+            const alt = parseFloat(wpAlt);
+            if (isNaN(lat) || isNaN(lon) || isNaN(alt)) {
+              console.error('Invalid waypoint coordinates:', { lat, lon, alt });
+              return;
+            }
+            sendWp(lat, lon, alt);
+          }}>
           SEND&nbsp;WAYPOINT
         </button>
       </div>
