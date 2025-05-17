@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import ROSLIB from "roslib";
+import LiveMap from "./components/LiveMap";
 
 /* ---- minimal message typings ---- */
 interface NavSatFixMsg extends ROSLIB.Message {
@@ -127,6 +128,9 @@ export default function Home() {
   /* ---------- UI ---------- */
   return (
     <main className="p-6 font-mono space-y-6">
+      <div className="mb-6">
+        <LiveMap lat={gps.lat} lon={gps.lon} hdg={parseFloat(hdg)} />
+      </div>
       <h1 className="text-xl">Drone Telemetry</h1>
       <div>Lat&nbsp;{gps.lat.toFixed(6)}</div>
       <div>Lon&nbsp;{gps.lon.toFixed(6)}</div>
