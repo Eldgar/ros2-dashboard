@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import ROSLIB from "roslib";
-import LiveMap from "./components/LiveMap";
+import dynamic from "next/dynamic";
 
 /* ---- minimal message typings ---- */
 interface NavSatFixMsg extends ROSLIB.Message {
@@ -23,6 +23,8 @@ interface SetModeRequest extends ROSLIB.Message {
   base_mode: number;
   custom_mode: string;
 }
+
+const LiveMap = dynamic(() => import("./components/LiveMap"), { ssr: false });
 
 export default function Home() {
   /* live data */
