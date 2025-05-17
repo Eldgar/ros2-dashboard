@@ -20,6 +20,11 @@ type Props = {
   hdg: number;          // degrees
 };
 
+// Helper to allow plugin props without type errors
+function RotatedMarker(props: any) {
+  return <Marker {...props} />;
+}
+
 export default function LiveMap({ lat, lon, hdg }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   useEffect(() => {
@@ -27,9 +32,6 @@ export default function LiveMap({ lat, lon, hdg }: Props) {
       mapRef.current?.setView([lat, lon]);
     }
   }, [lat, lon]);
-  const saveRef = (m: L.Map) => {
-    mapRef.current = m;
-  };
 
   return (
     <MapContainer
@@ -37,14 +39,13 @@ export default function LiveMap({ lat, lon, hdg }: Props) {
       zoom={17}
       scrollWheelZoom
       style={{ height: "400px", width: "100%" }}
-      whenCreated={saveRef}
+      ref={mapRef as any}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://osm.org/copyright">OSM</a>'
       />
-      {/* @ts-expect-error: rotated marker comes from plugin */}
-      <Marker
+      <RotatedMarker
         position={[lat, lon]}
         icon={triangle}
         rotationAngle={hdg}
