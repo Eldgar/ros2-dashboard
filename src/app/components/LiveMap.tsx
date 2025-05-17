@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-rotatedmarker";        // extends L.Marker
@@ -20,9 +20,36 @@ type Props = {
   hdg: number;          // degrees
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function RotatedMarker(props: any) {
-  return <Marker {...props} />;
+type RotatedMarkerProps = {
+  lat: number;
+  lon: number;
+  hdg: number;
+  icon: L.DivIcon;
+};
+
+export function RotatedMarker({ lat, lon, hdg, icon }: RotatedMarkerProps) {
+  const markerRef = useRef<L.Marker>(null);
+  const map = useMap();
+
+  useEffect(() => {
+    if (markerRef.current) {
+      // @ts-expect-error: rotationAngle is from plugin
+      markerRef.current.setRotationAngle(hdg);
+    }
+  }, [hdg]);
+
+  useEffect(() => {
+    map.setView([lat, lon]);
+  }, [lat, lon, map]);
+
+  return (
+    // @ts-expect-error: ref and rotation plugin
+    <Marker
+      position={[lat, lon]}
+      icon={icon}
+      ref={markerRef}
+    />
+  );
 }
 
 export default function LiveMap({ lat, lon, hdg }: Props) {
@@ -46,12 +73,7 @@ export default function LiveMap({ lat, lon, hdg }: Props) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://osm.org/copyright">OSM</a>'
       />
-      <RotatedMarker
-        position={[lat, lon]}
-        icon={triangle}
-        rotationAngle={hdg}
-        rotationOrigin="center"
-      />
+      <RotatedMarker lat={lat} lon={lon} hdg={hdg} icon={triangle} />
     </MapContainer>
   );
 }
