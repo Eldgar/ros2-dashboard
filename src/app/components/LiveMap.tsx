@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -21,16 +21,15 @@ type Props = {
 };
 
 export default function LiveMap({ lat, lon, hdg }: Props) {
-  // keep map centered on the vehicle
+  const mapRef = useRef<L.Map | null>(null);
   useEffect(() => {
     if (!isNaN(lat) && !isNaN(lon)) {
-      map?.setView([lat, lon]);
+      mapRef.current?.setView([lat, lon]);
     }
   }, [lat, lon]);
-
-  // Leaflet objects must be created inside the component
-  let map: L.Map | null = null;
-  const saveRef = (m: L.Map) => (map = m);
+  const saveRef = (m: L.Map) => {
+    mapRef.current = m;
+  };
 
   return (
     <MapContainer
@@ -44,7 +43,7 @@ export default function LiveMap({ lat, lon, hdg }: Props) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://osm.org/copyright">OSM</a>'
       />
-      {/* @ts-ignore: rotated marker comes from plugin */}
+      {/* @ts-expect-error: rotated marker comes from plugin */}
       <Marker
         position={[lat, lon]}
         icon={triangle}
