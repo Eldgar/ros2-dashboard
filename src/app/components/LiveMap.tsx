@@ -20,7 +20,7 @@ type Props = {
   hdg: number;          // degrees
 };
 
-// Helper to allow plugin props without type errors
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RotatedMarker(props: any) {
   return <Marker {...props} />;
 }
@@ -39,6 +39,7 @@ export default function LiveMap({ lat, lon, hdg }: Props) {
       zoom={17}
       scrollWheelZoom
       style={{ height: "400px", width: "100%" }}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={mapRef as any}
     >
       <TileLayer
