@@ -136,6 +136,8 @@ export default function Home() {
 
   /* throttle control */
   const [throttle, setThrottle] = useState(0.0);
+  const [servo, setServo] = useState(0.5);  // Start centered at 0.5
+
   const sendThrottle = (t: number) => {
     const val = Math.max(0, Math.min(1, t));
     setThrottle(val);
@@ -149,6 +151,21 @@ export default function Home() {
       } as ActuatorControlMsg)
     );
     console.log("Throttle message sent:", val);
+  };
+
+  const sendServo = (s: number) => {
+    const val = Math.max(0, Math.min(1, s));
+    setServo(val);
+    const ctrl = Array(8).fill(0);
+    // apply servo to channel 5 (index 4)
+    ctrl[4] = val;
+    actTopic.current?.publish(
+      new ROSLIB.Message({
+        controls: ctrl,
+        group_mix: 0,
+      } as ActuatorControlMsg)
+    );
+    console.log("Servo message sent:", val);
   };
 
   /* waypoint form state */
@@ -231,6 +248,21 @@ export default function Home() {
           step="0.01"
           value={throttle}
           onChange={e => sendThrottle(parseFloat(e.target.value))}
+          className="w-64 align-middle"
+        />
+      </div>
+
+      {/* Servo slider */}
+      <div className="mt-4">
+        <label htmlFor="servo" className="mr-2">Servo {Math.round(servo * 100)}%</label>
+        <input
+          id="servo"
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={servo}
+          onChange={e => sendServo(parseFloat(e.target.value))}
           className="w-64 align-middle"
         />
       </div>
