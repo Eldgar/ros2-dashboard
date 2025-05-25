@@ -5,6 +5,13 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-rotatedmarker";        // extends L.Marker
 
+// Extend the Marker type to include rotation methods
+declare module 'leaflet' {
+  interface Marker {
+    setRotationAngle(angle: number): void;
+  }
+}
+
 /* triangular SVG icon */
 const triangle = new L.DivIcon({
   className: "",
@@ -33,7 +40,6 @@ export function RotatedMarker({ lat, lon, hdg, icon }: RotatedMarkerProps) {
 
   useEffect(() => {
     if (markerRef.current) {
-      // @ts-expect-error: rotationAngle is from plugin
       markerRef.current.setRotationAngle(hdg);
     }
   }, [hdg]);
@@ -43,7 +49,6 @@ export function RotatedMarker({ lat, lon, hdg, icon }: RotatedMarkerProps) {
   }, [lat, lon, map]);
 
   return (
-    // @ts-expect-error: ref and rotation plugin
     <Marker
       position={[lat, lon]}
       icon={icon}
