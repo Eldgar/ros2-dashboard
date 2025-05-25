@@ -24,6 +24,11 @@ interface SetModeRequest extends ROSLIB.Message {
   custom_mode: string;
 }
 
+interface ActuatorControlMsg extends ROSLIB.Message {
+  controls: number[];  // length 8
+  group_mix: number;
+}
+
 const LiveMap = dynamic(() => import("./components/LiveMap"), { ssr: false });
 
 export default function Home() {
@@ -36,6 +41,7 @@ export default function Home() {
   const armSrv   = useRef<ROSLIB.Service | null>(null);
   const modeSrv  = useRef<ROSLIB.Service | null>(null);
   const wpTopic  = useRef<ROSLIB.Topic | null>(null);
+  const actTopic = useRef<ROSLIB.Topic | null>(null);
 
   /* ---------- one-time setup ---------- */
   useEffect(() => {
@@ -57,6 +63,12 @@ export default function Home() {
       ros: ros.current,
       name: "/mavros/setpoint_position/global",
       messageType: "geometry_msgs/PoseStamped",
+    });
+
+    actTopic.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/mavros/actuator_control",
+      messageType: "mavros_msgs/ActuatorControl",
     });
 
     /* 3 . telemetry subscriptions */
@@ -120,6 +132,23 @@ export default function Home() {
       })
     );
     console.log('Waypoint published');
+  };
+
+  /* throttle control */
+  const [throttle, setThrottle] = useState(0.0);
+  const sendThrottle = (t: number) => {
+    const val = Math.max(0, Math.min(1, t));
+    setThrottle(val);
+    const ctrl = Array(8).fill(0);
+    // apply throttle to first 4 outputs
+    ctrl[0] = ctrl[1] = ctrl[2] = ctrl[3] = val;
+    actTopic.current?.publish(
+      new ROSLIB.Message({
+        controls: ctrl,
+        group_mix: 0,
+      } as ActuatorControlMsg)
+    );
+    console.log("Throttle message sent:", val);
   };
 
   /* waypoint form state */
@@ -189,6 +218,21 @@ export default function Home() {
           }}>
           SEND&nbsp;WAYPOINT
         </button>
+      </div>
+
+      {/* Throttle slider */}
+      <div className="mt-4">
+        <label htmlFor="throttle" className="mr-2">Throttle {Math.round(throttle * 100)}%</label>
+        <input
+          id="throttle"
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={throttle}
+          onChange={e => sendThrottle(parseFloat(e.target.value))}
+          className="w-64 align-middle"
+        />
       </div>
     </main>
   );
