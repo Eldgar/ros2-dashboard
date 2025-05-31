@@ -206,8 +206,8 @@ export default function Home() {
         <button 
           className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
           onClick={() => {
-            console.log('STOP button clicked - Disarming and setting STABILIZE mode');
-            setMode("STABILIZE");
+            console.log('STOP button clicked - Disarming and setting STABILIZED mode');
+            setMode("STABILIZED");
             arm(false);
           }}>
           STOP&nbsp;(DISARM)
