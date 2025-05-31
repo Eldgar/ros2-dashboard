@@ -189,11 +189,11 @@ export default function Home() {
         <button 
           className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
           onClick={() => {
-            console.log('START button clicked - Initiating AUTO mode and arming');
+            console.log('START button clicked - Initiating AUTO.MISSION mode and arming');
             arm(true);
-            setMode("AUTO");
+            setMode("AUTO.MISSION");
           }}>
-          START&nbsp;(AUTO)
+          START&nbsp;(AUTO.MISSION)
         </button>
         <button 
           className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
